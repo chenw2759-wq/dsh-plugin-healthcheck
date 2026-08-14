@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import type { CheckFinding, CheckLayer, HistoryRecord, SmokeResult } from '../core/types.ts'
 import { L0_CHECKERS, checkGlobalL0, checkHighRiskCopies } from './checkers.ts'
+import { checkCordisUsage } from './cordis.ts'
 import { listProfilePlugins, resolveHome, type PluginRow } from './env.ts'
 import { scanPluginForMalware } from './malware.ts'
 import { appendHistory, readHistory } from './repair.ts'
@@ -88,6 +89,13 @@ async function executeRun(state: RunState, pluginFilter: string | undefined): Pr
       for (const row of scoped) {
         for (const checker of perPlugin) {
           state.findings.push(...checker(ctx, row))
+        }
+        // C9 — cordis usage static check (async-plugin-then-sync / new-no-config
+        // / inject-missing). Catches the "cannot get property X without inject"
+        // class of crashes in milliseconds, before L2 confirms by booting.
+        if (row.name !== 'dsh-plugin-healthcheck') {
+          const scanRoot = row.sourceDir ?? (row.installedDir !== '' ? row.installedDir : '')
+          state.findings.push(...checkCordisUsage(scanRoot, row.name))
         }
       }
       state.findings.push(...checkGlobalL0(ctx, rows))

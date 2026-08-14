@@ -21,7 +21,7 @@ DSH 的 `dsh plugin add` 只负责把插件装进 profile（薄 pnpm 转发器�
 | 改了 `link:`→`file:` 不生效 | pnpm 不重解析 lockfile | C6 lockfile 一致性 |
 | 被禁用的插件长期残留在依赖里 | 禁用是压制症状而非修复 | C7 禁用插件识别 |
 | 供应链投毒 / 恶意代码 | 发布包内注入恶意逻辑 | C8 木马扫描（纯静态隔离） |
-| 启动报 `loader fibers failed`（`cannot get property "fs" without inject`） | 插件未构建（lib 缺失）或 cordis 用法错误（`ctx.plugin()` 后同步取服务） | L2 隔离试跑在重启前抓到 |
+| 启动报 `loader fibers failed`（`cannot get property "fs" without inject`） | 插件未构建（lib 缺失）或 cordis 用法错误（`ctx.plugin()` 后同步取服务） | C9 cordis 用法检测（毫秒级） + L2 隔离试跑（重启前确认） |
 
 ---
 
@@ -68,6 +68,7 @@ Error: dsh: plugin tree failed to load: loader fibers failed
 | C5 Windows 命令 | `execFile`/`spawn` 引用的命令在注册表 PATH 是否有真 .exe |
 | C6 lockfile 一致性 | specifier 与 lockfile `version:` 前缀是否一致 |
 | C7 禁用插件 | 被 disabled 但仍登记的插件（皮肤互斥正常机制不误报） |
+| C9 cordis 用法 | 静态检测三类 cordis 错误：E1 `ctx.plugin()` 后同步取服务、E2 直接 `new` 需 config 的 Service 缺 config、E3 访问的服务不在 `inject` 声明里 → 提前捕获 `cannot get property "X" without inject` 类崩溃 |
 
 ### L1 配置组合
 复用基座 `composeEntries` 组合 bundle + profile + home 补丁层，与真实启动用**同一算法**；
@@ -154,6 +155,7 @@ pnpm test             # vitest（fixtures 复刻历史事故）
 | `tests/checkers.spec.ts` | L0 检查器对 fixture 的断言（missing-chunk 复刻 dsh-pet、link-dep 复刻 zod 事故、peer-copy 复刻双实例事故） |
 | `tests/repair.spec.ts` | 铁律门禁（harness 路径必须拒绝）+ files 修复 + 回滚/撤销幂等 |
 | `tests/malware.spec.ts` | 恶意 fixture 拦截、零执行证明、干净插件不误报、密钥脱敏、禁用识别、patch 解析 |
+| `tests/cordis.spec.ts` | C9 cordis 用法检测：E1 异步 plugin 后同步取服务、E2 new Service 缺 config、E3 inject 缺服务（复刻 dsh-ssh-workspace 事故） |
 | `tests/smoke.e2e.spec.ts` | 真实 profile 子进程完整 boot（L2） |
 | `tests/live.e2e.spec.ts` | 真实 profile HTTP 路由全链路（inventory/run/status/history） |
 
@@ -167,8 +169,9 @@ src/
 ├── core/types.ts         # 共享类型（Envelope / Finding / 严重度）
 ├── host/
 │   ├── env.ts            # home/profile/插件清单/禁用行解析
-│   ├── checkers.ts       # L0 七项检查器（C1~C7）
+│   ├── checkers.ts       # L0 检查器（C1~C7）
 │   ├── malware.ts        # C8 木马扫描（纯静态隔离）
+│   ├── cordis.ts         # C9 cordis 用法检测（E1~E3，纯静态）
 │   ├── verify.ts         # L1 配置组合 + L2 子进程试跑调度
 │   ├── runner.ts         # L2 子进程入口（lib/runner.js）
 │   ├── repair.ts         # 修复执行器 + 回滚（含铁律门禁）
