@@ -21,6 +21,38 @@ DSH 的 `dsh plugin add` 只负责把插件装进 profile（薄 pnpm 转发器�
 | 改了 `link:`→`file:` 不生效 | pnpm 不重解析 lockfile | C6 lockfile 一致性 |
 | 被禁用的插件长期残留在依赖里 | 禁用是压制症状而非修复 | C7 禁用插件识别 |
 | 供应链投毒 / 恶意代码 | 发布包内注入恶意逻辑 | C8 木马扫描（纯静态隔离） |
+| 启动报 `loader fibers failed`（`cannot get property "fs" without inject`） | 插件未构建（lib 缺失）或 cordis 用法错误（`ctx.plugin()` 后同步取服务） | L2 隔离试跑在重启前抓到 |
+
+---
+
+## 实战案例（真实事故）
+
+### 案例 A：未构建的插件导致后端启动崩溃
+
+`dsh-ssh-workspace`（SSH 远程工作区）登记进了 profile（`file:` 依赖 + bundle），但它的
+`lib/` 从未构建 —— 源码在、构建产物缺。重启后端时报：
+
+```
+Error: dsh: plugin tree failed to load: loader fibers failed
+  Error: failed to apply loader entry ssh-workspace-fs (@deepseek-ai/dsh-ssh-workspace/fs):
+    cannot get property "fs" without inject
+```
+
+**根因链**：`ctx.plugin(SandboxedFileSystem)` 是异步的，随后立即同步取 `localCtx.fs` 拿不到
+服务（隔离作用域的 key 对不上）→ `cannot get property "fs" without inject`。
+
+**L2 隔离试跑如何救场**：装完插件后不重启，直接跑一遍子进程完整 boot——它在后端真正
+重启**之前**就把这条链断掉了（报同样的错），而不是等用户重启才发现。
+
+**修复**（插件侧，不涉及 harness）：
+1. 改用同步 `new SandboxedFileSystem(localCtx, config)` 并持有实例引用，不再
+   `ctx.plugin()` 后同步取服务；
+2. 直接 `new` 不走 cordis config 默认值填充，需显式传入
+   `{ cwd, diffBasisMaxBytes: 10 * 1024 * 1024 }`；
+3. `inject` 补上 `sandboxPolicy`。
+
+**这个案例说明**：C8 木马扫描 + L2 隔离试跑在 CI 化的安装流程里互为补充——
+静态检查看"有什么"，隔离试跑看"装完能不能起来"。
 
 ---
 
