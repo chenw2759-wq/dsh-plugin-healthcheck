@@ -5,6 +5,16 @@
 
 `#dsh-plugin` · DeepSeek Harness (DSH) · TypeScript · turtle-ui
 
+## 截图
+
+设置面板 →「插件检测」：
+
+![插件检测面板](docs/healthcheck-panel.png)
+
+运行一次检测（L0 静态 + L1 配置组合 + L2 隔离试跑 + 木马扫描）：
+
+![插件检测结果](docs/healthcheck-results.png)
+
 ---
 
 ## 它解决什么问题
