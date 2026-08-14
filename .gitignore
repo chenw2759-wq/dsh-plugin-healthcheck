@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build info caches (regenerated per build)
+*.tsbuildinfo
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Local runtime artifacts (never commit)
+.dsh/
+
+# One-off debugging probes (not part of the test suite)
+tests/client-probe.mjs
+tests/live-probe.mjs
+tests/manual-live-instance.mjs
+tests/verify-new.mjs

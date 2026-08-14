@@ -1,0 +1,13 @@
+{
+  "name": "peer-copy-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.0",
+    "@deepseek-ai/dsh-tools": "^0.1.0"
+  },
+  "files": [
+    "lib"
+  ]
+}

@@ -1,0 +1,280 @@
+/* 插件检测 settings section — follows the shell's dark marker via CSS vars. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 16px;
+  font-size: 13px;
+  color: var(--ds-text-primary, #1f2328);
+}
+
+.description {
+  margin: 0;
+  color: var(--ds-text-secondary, #59636e);
+  line-height: 1.5;
+}
+
+.ironRule {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--ds-bg-warning-subtle, #fff8c5);
+  color: var(--ds-text-warning, #7d4e00);
+  font-size: 12px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.scope {
+  min-width: 180px;
+  padding: 6px 8px;
+  border: 1px solid var(--ds-border-default, #d1d9e0);
+  border-radius: 6px;
+  background: var(--ds-bg-input, #ffffff);
+  color: inherit;
+}
+
+.layers {
+  display: flex;
+  gap: 12px;
+}
+
+.layerLabel {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.runButton {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--ds-bg-accent, #0969da);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.runButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.stageRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.stageText {
+  color: var(--ds-text-secondary, #59636e);
+  font-size: 12px;
+}
+
+.smokeOk {
+  color: var(--ds-text-success, #1a7f37);
+  font-weight: 600;
+}
+
+.smokeBad {
+  color: var(--ds-text-danger, #d1242f);
+  font-weight: 600;
+}
+
+.notice {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--ds-bg-info-subtle, #ddf4ff);
+  color: var(--ds-text-info, #0969da);
+  font-size: 12px;
+}
+
+.confirmBox {
+  padding: 10px;
+  border: 1px solid var(--ds-border-warning, #d4a72c);
+  border-radius: 6px;
+  background: var(--ds-bg-warning-subtle, #fff8c5);
+}
+
+.confirmBox p {
+  margin: 0 0 8px;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+}
+
+.confirmYes {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--ds-bg-danger, #d1242f);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.confirmNo {
+  padding: 5px 14px;
+  border: 1px solid var(--ds-border-default, #d1d9e0);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.heading {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.empty {
+  margin: 4px 0;
+  color: var(--ds-text-success, #1a7f37);
+}
+
+.findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finding {
+  padding: 8px 10px;
+  border: 1px solid var(--ds-border-default, #d1d9e0);
+  border-radius: 6px;
+}
+
+.findingHead {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.badgeError {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--ds-bg-danger-emphasis, #d1242f);
+  color: #ffffff;
+  font-size: 11px;
+}
+
+.badgeWarn {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--ds-bg-warning-emphasis, #d4a72c);
+  color: #ffffff;
+  font-size: 11px;
+}
+
+.badgeInfo {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--ds-bg-info-emphasis, #0969da);
+  color: #ffffff;
+  font-size: 11px;
+}
+
+.findingCode {
+  font-family: var(--ds-font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--ds-text-secondary, #59636e);
+}
+
+.findingPlugin {
+  font-size: 12px;
+  color: var(--ds-text-secondary, #59636e);
+}
+
+.findingMessage {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+.evidence {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.evidence summary {
+  cursor: pointer;
+  color: var(--ds-text-secondary, #59636e);
+}
+
+.evidence ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-family: var(--ds-font-mono, ui-monospace, monospace);
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  padding: 4px 12px;
+  border: 1px solid var(--ds-border-default, #d1d9e0);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.actionButton:hover {
+  border-color: var(--ds-border-accent, #0969da);
+  color: var(--ds-text-accent, #0969da);
+}
+
+.historyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.historyItem {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ds-text-secondary, #59636e);
+}
+
+.historyTime {
+  min-width: 140px;
+}
+
+.historyCounts {
+  font-family: var(--ds-font-mono, ui-monospace, monospace);
+}
+
+.historySummary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+body[data-ds-dark-theme] .runButton {
+  background: var(--ds-bg-accent, #4493f8);
+}

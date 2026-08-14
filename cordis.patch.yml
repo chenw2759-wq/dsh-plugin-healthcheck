@@ -1,0 +1,8 @@
+# dsh-plugin-healthcheck bundle patch: inserts the dual-face plugin row into
+# the web profile roster. The node half (exports ".") runs in the host process
+# (the /healthcheck/* HTTP routes + checkers + smoke runner), and the `dsh.client`
+# declaration in package.json makes the browser half (exports "./client") load
+# in the web GUI, where it registers the 插件检测 settings section.
+- insert:
+    - id: dsh-plugin-healthcheck
+      name: 'dsh-plugin-healthcheck'
