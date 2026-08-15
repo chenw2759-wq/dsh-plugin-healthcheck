@@ -73,9 +73,14 @@ describeE2E('live /healthcheck routes', () => {
       const base = `http://127.0.0.1:${live.port}`
 
       const inventory = await getJson(`${base}/healthcheck/inventory`)
-      const inventoryEnvelope = inventory.body as { ok: boolean; value: unknown[] }
+      const inventoryEnvelope = inventory.body as {
+        ok: boolean
+        value: { profile: unknown[]; builtin: unknown[]; counts: { total: number } }
+      }
       expect(inventoryEnvelope.ok).toBe(true)
-      expect(Array.isArray(inventoryEnvelope.value)).toBe(true)
+      expect(Array.isArray(inventoryEnvelope.value.profile)).toBe(true)
+      expect(Array.isArray(inventoryEnvelope.value.builtin)).toBe(true)
+      expect(inventoryEnvelope.value.counts.total).toBeGreaterThan(0)
 
       const runResponse = await fetch(`${base}/healthcheck/run`, {
         method: 'POST',

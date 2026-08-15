@@ -10,10 +10,22 @@ export interface InventoryRow {
     name: string;
     spec: string;
     bundle: boolean;
+    /** Whether the plugin is a harness built-in bundle (not a profile dep). */
+    builtin: boolean;
     /** Whether a patch layer currently disables the plugin. */
     disabled: boolean;
     /** The layers that disabled it (home/profile). */
     disabledBy: string[];
+}
+/** The full plugin inventory: user profile plugins + harness built-ins. */
+export interface Inventory {
+    profile: InventoryRow[];
+    builtin: InventoryRow[];
+    counts: {
+        profile: number;
+        builtin: number;
+        total: number;
+    };
 }
 /** One run-status poll snapshot. */
 export interface RunStatus {
@@ -26,7 +38,7 @@ export interface RunStatus {
 /** Typed healthcheck operations over the wire. */
 export declare class HealthcheckApi {
     /** List installed plugins for the scope picker. */
-    inventory(): Promise<Envelope<InventoryRow[]>>;
+    inventory(): Promise<Envelope<Inventory>>;
     /** Start a check run; returns its runId. */
     run(payload: {
         profile?: string;

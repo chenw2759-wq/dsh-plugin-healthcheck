@@ -28,11 +28,14 @@ const SCAN_EXT = /\.(ts|tsx|js|mjs|cjs)$/i
 /** Directories skipped. */
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'lib/types', '.dsh', 'tests', 'test', '__tests__', 'fixtures', 'lib'])
 
-/** Strip `// line` and `/* block *​/` comments from one line (approx, good enough for heuristic). */
-function stripComments(line: string): string {
-  return line
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/(^|[^:"'\\])\/\/.*$/g, '$1')
+/** Strip `/* block *​/` comments from a WHOLE file (they span lines). */
+function stripBlocks(content: string): string {
+  return content.replace(/\/\*[\s\S]*?\*\//g, '')
+}
+
+/** Strip a `// line` comment from one code line (after block removal). */
+function stripLineComment(line: string): string {
+  return line.replace(/(^|[^:"'\\])\/\/.*$/g, '$1')
 }
 
 /** Cordis core methods/props that never need inject declaration. */
@@ -126,15 +129,15 @@ function detectAsyncPluginThenSync(root: string): CordisHit[] {
     } catch {
       continue
     }
-    const lines = content.split(/\r?\n/)
+    const lines = stripBlocks(content).split(/\r?\n/)
     for (let i = 0; i < lines.length; i++) {
-      const codeLine = stripComments(lines[i])
+      const codeLine = stripLineComment(lines[i])
       // Match `ctx.plugin(X)` / `localCtx.plugin(X)` (not preceded by await).
       const pluginCall = /(?<!await\s)(?:ctx|localCtx|hostCtx|scope)\.plugin\s*\(/.exec(codeLine)
       if (pluginCall === null) continue
       // Look ahead a few lines for a synchronous service read (no await).
       for (let j = i + 1; j <= i + 6 && j < lines.length; j++) {
-        const ahead = stripComments(lines[j])
+        const ahead = stripLineComment(lines[j])
         if (ahead === '') continue
         if (/\bawait\b/.test(ahead)) break // awaited later — the pattern is legit
         const syncRead = /(?:ctx|localCtx|hostCtx)\.(?:fs|subprocess|shell|session|storage|tools|webServer|systemPrompt|sandboxPolicy)\b/.exec(ahead)
@@ -168,9 +171,9 @@ function detectNewServiceNoConfig(root: string): CordisHit[] {
     } catch {
       continue
     }
-    const lines = content.split(/\r?\n/)
+    const lines = stripBlocks(content).split(/\r?\n/)
     for (let i = 0; i < lines.length; i++) {
-      const codeLine = stripComments(lines[i])
+      const codeLine = stripLineComment(lines[i])
       for (const service of CONFIG_REQUIRED_SERVICES) {
         const match = new RegExp(`\\bnew\\s+${service}\\s*\\(`).exec(codeLine)
         if (match === null) continue
@@ -208,9 +211,9 @@ function detectInjectMissing(root: string, info: PluginInfo): CordisHit[] {
     } catch {
       continue
     }
-    const lines = content.split(/\r?\n/)
+    const lines = stripBlocks(content).split(/\r?\n/)
     for (let i = 0; i < lines.length; i++) {
-      const codeLine = stripComments(lines[i])
+      const codeLine = stripLineComment(lines[i])
       // Skip the inject declaration itself and known core methods.
       if (/\bexport\s+const\s+inject\b/.test(codeLine)) continue
       // A service read: `ctx.<svc>` used as a value — followed by `.`, `(`,

@@ -1,1 +1,1 @@
-{"version":3,"file":"cordis.d.ts","sourceRoot":"","sources":["../../../src/host/cordis.ts"],"names":[],"mappings":"AAAA;;;;;;;;;;;;;;GAcG;AAIH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,kBAAkB,CAAA;AAiOpD;;GAEG;AACH,wBAAgB,gBAAgB,CAAC,IAAI,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,GAAG,YAAY,EAAE,CAoCjF"}
+{"version":3,"file":"cordis.d.ts","sourceRoot":"","sources":["../../../src/host/cordis.ts"],"names":[],"mappings":"AAAA;;;;;;;;;;;;;;GAcG;AAIH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,kBAAkB,CAAA;AAoOpD;;GAEG;AACH,wBAAgB,gBAAgB,CAAC,IAAI,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,GAAG,YAAY,EAAE,CAoCjF"}

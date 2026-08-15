@@ -4,7 +4,7 @@
  * @module dsh-plugin-healthcheck/host/env
  */
 
-import { existsSync, readFileSync, realpathSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
@@ -77,10 +77,12 @@ export function resolveHistoryDir(home = resolveHome()): string {
 export interface PluginRow {
   /** Dependency key (package name). */
   name: string
-  /** The raw specifier (file:/link:/registry range). */
+  /** The raw specifier (file:/link:/registry range, or 'builtin'). */
   spec: string
   /** Whether it is listed as a bundle layer. */
   bundle: boolean
+  /** Whether it is a harness built-in bundle (not a profile dependency). */
+  builtin?: boolean
   /** Installed directory inside the profile (realpath'd). */
   installedDir: string
   /** Source directory for file:/link: specs. */
@@ -199,4 +201,32 @@ function realInstalledDir(path: string): string {
   } catch {
     return ''
   }
+}
+
+/**
+ * Scan the harness install's @deepseek-ai scope for every package — these are
+ * the BUILT-IN modules the web profile can load (the settings 插件 page lists
+ * ~190 of them from the Loader), which profile dependencies never mention.
+ * The healthcheck scope picker should offer them too, so "全部插件" matches
+ * what the user sees elsewhere. Every scoped package is listed (not only
+ * dsh.bundle declarers): dsh-base/dsh-web-app insert many rows whose module
+ * packages never declare a bundle manifest themselves.
+ */
+export function listBuiltinBundles(home = resolveHome()): PluginRow[] {
+  const scopeDir = join(resolveInstallRoot(), '@deepseek-ai')
+  if (!existsSync(scopeDir)) return []
+  const rows: PluginRow[] = []
+  for (const entry of readdirSync(scopeDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const pkgDir = join(scopeDir, entry.name)
+    if (!existsSync(join(pkgDir, 'package.json'))) continue
+    rows.push({
+      name: `@deepseek-ai/${entry.name}`,
+      spec: 'builtin',
+      bundle: true,
+      installedDir: pkgDir,
+      builtin: true,
+    })
+  }
+  return rows.sort((a, b) => a.name.localeCompare(b.name))
 }

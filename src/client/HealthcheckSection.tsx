@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { CheckFinding, HistoryRecord } from '../core/types.ts'
-import { HealthcheckApi, type InventoryRow, type RunStatus } from './api.ts'
+import { HealthcheckApi, type Inventory, type RunStatus } from './api.ts'
 import type { HealthcheckKey } from './locales.ts'
 import css from './healthcheck.module.css'
 
@@ -38,7 +38,7 @@ export function HealthcheckSection(props: HealthcheckSectionProps): ReactNode {
   if (apiRef.current === null) apiRef.current = new HealthcheckApi()
   const api = apiRef.current
 
-  const [plugins, setPlugins] = useState<InventoryRow[]>([])
+  const [inventory, setInventory] = useState<Inventory>({ profile: [], builtin: [], counts: { profile: 0, builtin: 0, total: 0 } })
   const [scopePlugin, setScopePlugin] = useState('')
   const [layers, setLayers] = useState<Record<string, boolean>>({ l0: true, l1: true, l2: true, malware: true })
   const [running, setRunning] = useState(false)
@@ -51,7 +51,7 @@ export function HealthcheckSection(props: HealthcheckSectionProps): ReactNode {
 
   useEffect(() => {
     void api.inventory().then((envelope) => {
-      if (envelope.ok) setPlugins(envelope.value)
+      if (envelope.ok) setInventory(envelope.value)
     })
     void api.history().then((envelope) => {
       if (envelope.ok) setHistory(envelope.value)
@@ -174,12 +174,27 @@ export function HealthcheckSection(props: HealthcheckSectionProps): ReactNode {
           onChange={(event) => { setScopePlugin(event.target.value) }}
           aria-label={t('scopePlugin')}
         >
-          <option value="">{t('scopeAll')}</option>
-          {plugins.map((row) => (
-            <option key={row.name} value={row.name}>
-              {row.disabled ? `[${t('disabledBadge')}] ` : ''}{row.name}
-            </option>
-          ))}
+          <option value="">{t('scopeAll')} ({inventory.counts.total})</option>
+          {inventory.profile.length > 0
+            ? (
+              <optgroup label={`${t('scopeProfile')} (${inventory.counts.profile})`}>
+                {inventory.profile.map((row) => (
+                  <option key={row.name} value={row.name}>
+                    {row.disabled ? `[${t('disabledBadge')}] ` : ''}{row.name}
+                  </option>
+                ))}
+              </optgroup>
+            )
+            : null}
+          {inventory.builtin.length > 0
+            ? (
+              <optgroup label={`${t('scopeBuiltin')} (${inventory.counts.builtin})`}>
+                {inventory.builtin.map((row) => (
+                  <option key={row.name} value={row.name}>{row.name}</option>
+                ))}
+              </optgroup>
+            )
+            : null}
         </select>
         <div className={css.layers} role="group" aria-label="layers">
           {LAYERS.map((layer) => (

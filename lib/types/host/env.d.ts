@@ -31,10 +31,12 @@ export declare function resolveHistoryDir(home?: string): string;
 export interface PluginRow {
     /** Dependency key (package name). */
     name: string;
-    /** The raw specifier (file:/link:/registry range). */
+    /** The raw specifier (file:/link:/registry range, or 'builtin'). */
     spec: string;
     /** Whether it is listed as a bundle layer. */
     bundle: boolean;
+    /** Whether it is a harness built-in bundle (not a profile dependency). */
+    builtin?: boolean;
     /** Installed directory inside the profile (realpath'd). */
     installedDir: string;
     /** Source directory for file:/link: specs. */
@@ -65,4 +67,14 @@ export declare function collectPluginRowIds(row: {
  * Returns a map of row id → list of disabling layers.
  */
 export declare function collectDisabledRows(profile: string, home?: string): Map<string, string[]>;
+/**
+ * Scan the harness install's @deepseek-ai scope for every package — these are
+ * the BUILT-IN modules the web profile can load (the settings 插件 page lists
+ * ~190 of them from the Loader), which profile dependencies never mention.
+ * The healthcheck scope picker should offer them too, so "全部插件" matches
+ * what the user sees elsewhere. Every scoped package is listed (not only
+ * dsh.bundle declarers): dsh-base/dsh-web-app insert many rows whose module
+ * packages never declare a bundle manifest themselves.
+ */
+export declare function listBuiltinBundles(home?: string): PluginRow[];
 //# sourceMappingURL=env.d.ts.map

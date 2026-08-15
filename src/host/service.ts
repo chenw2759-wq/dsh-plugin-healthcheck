@@ -10,7 +10,7 @@ import { join } from 'node:path'
 import type { CheckFinding, CheckLayer, HistoryRecord, SmokeResult } from '../core/types.ts'
 import { L0_CHECKERS, checkGlobalL0, checkHighRiskCopies } from './checkers.ts'
 import { checkCordisUsage } from './cordis.ts'
-import { listProfilePlugins, resolveHome, type PluginRow } from './env.ts'
+import { listBuiltinBundles, listProfilePlugins, resolveHome, type PluginRow } from './env.ts'
 import { scanPluginForMalware } from './malware.ts'
 import { appendHistory, readHistory } from './repair.ts'
 import { checkConfigComposition, runSmokeBoot } from './verify.ts'
@@ -77,7 +77,12 @@ function pruneRuns(): void {
 async function executeRun(state: RunState, pluginFilter: string | undefined): Promise<void> {
   try {
     const rows = listProfilePlugins(state.profile, state.home)
-    const scoped = pluginFilter !== undefined ? rows.filter((row) => row.name === pluginFilter) : rows
+    // A scope filter may name a harness built-in bundle (not a profile dep);
+    // resolve it from the install scope so built-ins are scannable too.
+    let scoped = pluginFilter !== undefined ? rows.filter((row) => row.name === pluginFilter) : rows
+    if (pluginFilter !== undefined && scoped.length === 0) {
+      scoped = listBuiltinBundles(state.home).filter((row) => row.name === pluginFilter)
+    }
 
     if (state.layers.includes('l0')) {
       state.stage = 'l0'
@@ -93,10 +98,9 @@ async function executeRun(state: RunState, pluginFilter: string | undefined): Pr
         // C9 — cordis usage static check (async-plugin-then-sync / new-no-config
         // / inject-missing). Catches the "cannot get property X without inject"
         // class of crashes in milliseconds, before L2 confirms by booting.
-        if (row.name !== 'dsh-plugin-healthcheck') {
-          const scanRoot = row.sourceDir ?? (row.installedDir !== '' ? row.installedDir : '')
-          state.findings.push(...checkCordisUsage(scanRoot, row.name))
-        }
+        // No self-exclusion: the plugin must satisfy its own discipline.
+        const scanRoot = row.sourceDir ?? (row.installedDir !== '' ? row.installedDir : '')
+        state.findings.push(...checkCordisUsage(scanRoot, row.name))
       }
       state.findings.push(...checkGlobalL0(ctx, rows))
     }
@@ -167,9 +171,10 @@ function buildHistoryRecord(state: RunState): HistoryRecord {
 }
 
 /** Human summary of the plugin inventory (for the panel header). */
-export function inventorySummary(): { total: number; bundles: number } {
+export function inventorySummary(): { total: number; bundles: number; builtin: number } {
   const rows = listProfilePlugins('web', resolveHome())
-  return { total: rows.length, bundles: rows.filter((r) => r.bundle).length }
+  const builtin = listBuiltinBundles(resolveHome())
+  return { total: rows.length + builtin.length, bundles: rows.filter((r) => r.bundle).length, builtin: builtin.length }
 }
 
 export type { PluginRow }

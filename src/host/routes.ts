@@ -11,7 +11,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import type { Envelope, RepairAction } from '../core/types.ts'
 import { failEnvelope, okEnvelope } from '../core/types.ts'
-import { listProfilePlugins, resolveHome } from './env.ts'
+import { listBuiltinBundles, listProfilePlugins, resolveHome } from './env.ts'
 import { applyRepair, rollbackPlugin, undoRollback } from './repair.ts'
 import { getHistory, getRun, startRun } from './service.ts'
 
@@ -65,14 +65,30 @@ export function registerHealthcheckRoutes(ctx: Context): () => void {
     const pathname = url.pathname
 
     if (pathname === '/healthcheck/inventory' && req.method === 'GET') {
-      const rows = listProfilePlugins('web', resolveHome())
-      json(res, okEnvelope(rows.map((row) => ({
-        name: row.name,
-        spec: row.spec,
-        bundle: row.bundle,
-        disabled: row.disabled === true,
-        disabledBy: row.disabledBy ?? [],
-      }))))
+      const home = resolveHome()
+      const profileRows = listProfilePlugins('web', home)
+      const builtinRows = listBuiltinBundles(home)
+      const userNames = new Set(profileRows.map((row) => row.name))
+      const builtin = builtinRows.filter((row) => !userNames.has(row.name))
+      json(res, okEnvelope({
+        profile: profileRows.map((row) => ({
+          name: row.name,
+          spec: row.spec,
+          bundle: row.bundle,
+          builtin: false,
+          disabled: row.disabled === true,
+          disabledBy: row.disabledBy ?? [],
+        })),
+        builtin: builtin.map((row) => ({
+          name: row.name,
+          spec: 'builtin',
+          bundle: true,
+          builtin: true,
+          disabled: false,
+          disabledBy: [],
+        })),
+        counts: { profile: profileRows.length, builtin: builtin.length, total: profileRows.length + builtin.length },
+      }))
       return
     }
 

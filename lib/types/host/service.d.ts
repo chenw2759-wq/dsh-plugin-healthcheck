@@ -37,6 +37,7 @@ export declare function getHistory(): unknown[];
 export declare function inventorySummary(): {
     total: number;
     bundles: number;
+    builtin: number;
 };
 export type { PluginRow };
 //# sourceMappingURL=service.d.ts.map
