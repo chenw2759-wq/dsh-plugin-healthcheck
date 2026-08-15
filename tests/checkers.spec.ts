@@ -52,10 +52,34 @@ describe('C2 dependency spec (link:/file: incident)', () => {
   })
 
   it('warns about file: plugins with harness-core peers', () => {
+    // ctx.profileDir = '' means no pnpm-workspace.yaml → autoInstallPeers
+    // defaults to enabled → the risk warning is legitimate.
     const findings = checkDependencySpec(ctx, row('peer-copy-plugin', 'file:x', join(FIXTURES, 'peer-copy-plugin')))
     const warn = findings.find((f) => f.code === 'file-peer-copies')
     expect(warn).toBeDefined()
     expect(warn?.severity).toBe('warn')
+  })
+
+  it('stays quiet on harness-core peers when autoInstallPeers is disabled', () => {
+    // The dsh profile template ships autoInstallPeers: false — peers never
+    // materialize as nested copies, so the declaration alone is not a risk.
+    const dir = mkdtempSync(join(tmpdir(), 'peers-off-'))
+    writeFileSync(join(dir, 'pnpm-workspace.yaml'), 'packages:\n  - .\n\nautoInstallPeers: false\n', 'utf8')
+    const findings = checkDependencySpec(
+      { ...ctx, profileDir: dir },
+      row('peer-copy-plugin', 'file:x', join(FIXTURES, 'peer-copy-plugin')),
+    )
+    expect(findings.find((f) => f.code === 'file-peer-copies')).toBeUndefined()
+  })
+
+  it('warns again when autoInstallPeers is absent', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'peers-default-'))
+    writeFileSync(join(dir, 'pnpm-workspace.yaml'), 'packages:\n  - .\n', 'utf8')
+    const findings = checkDependencySpec(
+      { ...ctx, profileDir: dir },
+      row('peer-copy-plugin', 'file:x', join(FIXTURES, 'peer-copy-plugin')),
+    )
+    expect(findings.find((f) => f.code === 'file-peer-copies')).toBeDefined()
   })
 
   it('stays quiet on a dependency-free link: plugin', () => {
